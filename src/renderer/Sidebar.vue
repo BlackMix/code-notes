@@ -101,14 +101,20 @@ aside {
       padding-bottom: 11px !important;
       html.dark & {
         color: $white!important;
+        background-color: $black;
       }
     }
+
     html.dark & a:hover {
-      background-color: $black!important;
+      background-color: $purple!important;
     }
 
-    html.dark & {
+    html.dark & .tag {
       background-color: $orange!important;
+    }
+
+    html.dark & .is-active {
+      background-color: $purple!important;
     }
   }
 

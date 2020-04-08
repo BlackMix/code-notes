@@ -173,6 +173,7 @@ const actions = {
     }
   },
   updateNote(store, note) {
+    store.commit('SELECT_LOADING', true);
     if (store.state.gistsSelected) {
       const octokit = getOctokit(store.rootState.Settings.settings);
 
