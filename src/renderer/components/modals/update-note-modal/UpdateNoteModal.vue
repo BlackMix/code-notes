@@ -87,7 +87,8 @@ export default {
         }
 
         this.updateNote(this.noteUpdated).then(() => {
-          this.$parent.close();
+          // add mame
+          this.$modal.hide();
         });
       } else {
         this.displayDupError = true;

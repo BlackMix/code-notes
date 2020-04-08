@@ -68,7 +68,7 @@ export default {
         }
 
         this.addNote(this.note).then(() => {
-          this.$parent.close();
+          this.$modal.hide('createNewNote');
         });
       } else {
         this.displayDupError = true;

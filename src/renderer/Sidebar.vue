@@ -6,7 +6,7 @@
     <ul class="menu-list">
       <li>
         <a
-          :class="{ 'is-active': !gistsSelected }"
+          :class="{ 'is-active': !gistsSelected && gistsSelected !== null }"
           @click="selectGistsSidebar(false)"
           >Local
           <b-icon icon="laptop" class="is-pulled-right"></b-icon>
@@ -18,6 +18,14 @@
           @click="selectGistsSidebar(true)"
           >Gists
           <b-icon icon="github" class="is-pulled-right"></b-icon>
+        </a>
+      </li>
+      <li>
+        <a
+          :class="{ 'is-active': mysqlSelected }"
+          @click="selectMysqlSidebar(true)"
+          >Mysql
+          <b-icon icon="database" class="is-pulled-right"></b-icon>
         </a>
       </li>
     </ul>
@@ -33,7 +41,7 @@
           <b-tag class="is-pulled-right" type="is-dark">{{ totalFiles }}</b-tag>
         </a>
       </li>
-      <li v-for="(list, value) in Array.from(languages)">
+      <li v-for="(list, value) in Array.from(languages)" :key="value">
         <a
           :class="{ 'is-active': languageSelected === list[0] }"
           @click="selectLanguageSidebar(list[0])"
@@ -51,12 +59,17 @@ import { mapGetters, mapActions } from 'vuex';
 export default {
   name: 'cn-sidebar',
   methods: {
-    ...mapActions(['selectLanguage', 'selectGists']),
+    ...mapActions(['selectLanguage', 'selectGists', 'selectMysql']),
     selectLanguageSidebar(language) {
       this.selectLanguage(language);
     },
     selectGistsSidebar(gistsSelected) {
+      this.selectMysql(false);
       this.selectGists(gistsSelected);
+    },
+    selectMysqlSidebar(selectMysql) {
+      this.selectGists(null);
+      this.selectMysql(selectMysql);
     },
   },
   computed: {
@@ -67,6 +80,7 @@ export default {
       'totalFiles',
       'gistsSelected',
       'isLoading',
+      'mysqlSelected'
     ]),
   },
 };
@@ -78,12 +92,29 @@ aside {
   top: 48px;
   width: 22%;
   margin-top: 24px;
+  
 
   li {
     margin: 5px 0;
 
     a {
       padding-bottom: 11px !important;
+      html.dark & {
+        color: $white!important;
+        background-color: $black;
+      }
+    }
+
+    html.dark & a:hover {
+      background-color: $purple!important;
+    }
+
+    html.dark & .tag {
+      background-color: $orange!important;
+    }
+
+    html.dark & .is-active {
+      background-color: $purple!important;
     }
   }
 

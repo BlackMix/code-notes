@@ -24,7 +24,10 @@ export default {
     };
   },
   methods: {
-    ...mapActions(['loadNotes', 'loadSettings']),
+    ...mapActions(['loadNotes', 'loadSettings', 'loadDatabase']),
+    showUpdateNoteModal(name){
+      this.$modal.show(name);
+    },
   },
   computed: {
     ...mapGetters([
@@ -34,6 +37,8 @@ export default {
       'gistsSelected',
       'isLoading',
       'settings',
+      'database',
+      'mysqlSelected'
     ]),
     notesFiltered() {
       const notesFiltered = this.notes.filter(item =>
@@ -81,6 +86,7 @@ export default {
     next(vm => {
       vm.loadNotes();
       vm.loadSettings();
+      vm.loadDatabase();
     });
   },
 };

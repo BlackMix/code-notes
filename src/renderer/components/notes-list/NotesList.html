@@ -10,10 +10,10 @@
       </b-field>
     </div>
     <div id="buttons">
-      <button id="preferences" class="button is-light" @click="settingsModalActive = true">
+      <button id="preferences" class="button is-light" @click="showUpdateNoteModal('settingsModalActive')">
         <b-icon icon="gear"></b-icon>
       </button>
-      <button id="add-note" class="button is-dark" @click="createNoteModalActive = true">
+      <button id="add-note" class="button is-dark" @click="showUpdateNoteModal('createNewNote')">
         <b-icon icon="plus"></b-icon>
       </button>
     </div>
@@ -54,13 +54,27 @@
     </div>
   </div>
 
-  <b-modal :active.sync="createNoteModalActive" has-modal-card>
+  <modal name="createNewNote"
+    :resizable="true"
+    :reset="true"
+    :adaptive="true"
+    height="70%"
+    width="700"
+    :min-width="700"
+    :min-height="550">
     <cn-create-note-modal></cn-create-note-modal>
-  </b-modal>
+  </modal>
 
-  <b-modal :active.sync="settingsModalActive" has-modal-card>
+  <modal name="settingsModalActive"
+    :resizable="true"
+    :reset="true"
+    :adaptive="true"
+    height="70%"
+    width="700"
+    :min-width="700"
+    :min-height="550">
     <cn-settings-modal></cn-settings-modal>
-  </b-modal>
+  </modal>
 
   <b-modal :active.sync="helpTokenModalActive" has-modal-card>
     <cn-help-token-modal></cn-help-token-modal>
