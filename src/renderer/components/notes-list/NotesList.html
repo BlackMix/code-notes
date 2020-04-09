@@ -31,8 +31,9 @@
       <cn-note-card :note="note"></cn-note-card>
     </div>
   </div>
+  {{ notesFiltered.length }}
   <div v-if="notesFiltered.length === 0 && searchField === '' && !isLoading" class="columns notes">
-    <div class="column is-12 no-note" v-if="!selected || selected === 'mysql' || (selected === 'gist' && settings.githubPersonalAccessToken)">
+    <div class="column is-12 no-note" v-if="['mysql', 'local', ''].includes(selected) || (selected === 'gist' && settings.githubPersonalAccessToken)">
       <h1>Hey !</h1>
       <h2>You don't have any {{selected === 'gist' ? 'gist' : 'note'}}...</h2>
       <button class="button is-primary" @click="showUpdateNoteModal('createNewNote')">

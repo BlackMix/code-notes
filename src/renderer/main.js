@@ -63,7 +63,6 @@ Vue.filter('capitalize', (value) => {
   return value.charAt(0).toUpperCase() + value.slice(1);
 });
 
-Vue.config.devtools = true;
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'));
 Vue.http = Vue.prototype.$http = axios;
 Vue.config.productionTip = false;

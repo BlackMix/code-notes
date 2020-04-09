@@ -42,7 +42,7 @@ export default {
       this.updateNote(this.note);
     },
     deleteNoteModal() {
-      this.$dialog.confirm({
+      this.$buefy.dialog.confirm({
         title: this.selected === 'gist' ? 'Delete gist' : 'Delete note',
         message: `Are you sure you want to delete this ${
           this.selected === 'gist' ? 'gist' : 'note'
@@ -58,7 +58,7 @@ export default {
     convertNoteToGist() {
       this.convertToGist(this.note)
         .then(() => {
-          this.$dialog.confirm({
+          this.$buefy.dialog.confirm({
             title: 'Successful',
             message: 'Note was converted to gist.<br>Do you want to delete local note ?',
             confirmText: 'Delete',
@@ -76,7 +76,7 @@ export default {
           });
         })
         .catch(err => {
-          this.$dialog.alert({
+          this.$buefy.dialog.alert({
             title: 'Error',
             message: 'Note was not converted to gist.<br>Please retry later',
             type: 'is-danger',
