@@ -196,6 +196,7 @@ const actions = {
           store.dispatch('loadNotes');
         }
       });
+      store.dispatch('loadNotes');
       actions.writeFileToFS(note, true);
     }
   },

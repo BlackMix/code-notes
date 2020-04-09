@@ -35,6 +35,10 @@ body {
   font-family: 'Source Sans Pro', sans-serif;
 }
 
+::-webkit-scrollbar {
+    display: none;
+}
+
 .side-colum {
   min-height: 56vh;
   html.dark & {

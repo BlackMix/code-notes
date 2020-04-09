@@ -7,6 +7,14 @@
   text-align: center;
 }
 
+.loading-bro {
+  h1 {
+    html.dark & {
+      color: $white;
+    }
+  }
+}
+
 #notes-list {
   margin-top: 72px;
 

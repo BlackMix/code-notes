@@ -48,7 +48,9 @@ function createWindow() {
           label: 'Toggle dev tools',
           accelerator: 'CmdOrCtrl+Shift+I',
           click: () => {
-            mainWindow.toggleDevTools();
+            const x = require('electron').remote.getCurrentWindow();
+            x.closeDevTools();
+            x.openDevTools();
           },
         },
         {

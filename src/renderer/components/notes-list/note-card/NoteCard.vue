@@ -30,7 +30,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['updateNote', 'deleteNote', 'convertToGist', 'selectGists']),
+    ...mapActions(['updateNote', 'deleteNote', 'convertToGist', 'select']),
     stringToColour(str) {
       const colorHash = new ColorHash({ lightness: 0.5, saturation: 0.6 });
       return colorHash.hex(str);
@@ -55,12 +55,13 @@ export default {
         },
       });
     },
-    convertNoteToGist() {
+    convertNoteToGistPublicOrPrivate() {
       this.convertToGist(this.note)
         .then(() => {
           this.$buefy.dialog.confirm({
             title: 'Successful',
-            message: 'Note was converted to gist.<br>Do you want to delete local note ?',
+            message: `Note was converted to gist ${this.note.public ? 'public' : 'secret'}` +
+            `.<br>Do you want to delete local note?`,
             confirmText: 'Delete',
             cancelText: 'Keep',
             type: 'is-success',
@@ -68,10 +69,10 @@ export default {
             hasIcon: true,
             onConfirm: () => {
               this.deleteNote(this.note);
-              this.selectGists(true);
+              this.select('local');
             },
             onCancel: () => {
-              this.selectGists(true);
+              this.select('local');
             }
           });
         })
@@ -84,6 +85,32 @@ export default {
             icon: 'times-circle',
           });
         });
+    },
+    convertNoteToGist() {
+      this.$buefy.dialog.prompt({
+        title: 'Save in gist',
+        message: 'Add this in public?',
+        inputAttrs: {
+          type: 'text',
+          placeholder: 'yes/no',
+          value: 'no',
+          maxlength: 5,
+          min: 1
+        },
+        trapFocus: true,
+        confirmText: 'Cofirm',
+        cancelText: 'Cancel',
+        type: 'is-info',
+        icon: 'check-circle',
+        hasIcon: true,
+        onConfirm: (value) => {
+          this.note.public = ['yes', 'y', 'ok', 'yeah'].includes(value)
+          // this.convertNoteToGistPublicOrPrivate();
+        },
+        onCancel: () => {
+          this.$buefy.snackbar.open(`Cancelled convert for ${this.note.name}`)
+        }
+      });
     },
     onCopyClipboardSuccess() {
       this.$toast.open({
