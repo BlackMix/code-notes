@@ -32,14 +32,14 @@
     </div>
   </div>
   <div v-if="notesFiltered.length === 0 && searchField === '' && !isLoading" class="columns notes">
-    <div class="column is-12 no-note" v-if="!gistsSelected || (gistsSelected && settings.githubPersonalAccessToken)">
+    <div class="column is-12 no-note" v-if="!selected || selected === 'mysql' || (selected === 'gist' && settings.githubPersonalAccessToken)">
       <h1>Hey !</h1>
-      <h2>You don't have any {{gistsSelected ? 'gist' : 'note'}}...</h2>
-      <button class="button is-primary" @click="createNoteModalActive = true">
+      <h2>You don't have any {{selected === 'gist' ? 'gist' : 'note'}}...</h2>
+      <button class="button is-primary" @click="showUpdateNoteModal('createNewNote')">
         Create a new one :)
       </button>
     </div>
-    <div v-if="!settings.githubPersonalAccessToken && gistsSelected">
+    <div v-if="!settings.githubPersonalAccessToken && selected === 'gist'">
       <div class="column is-8 is-offset-2 no-token">
         <h1>Hey !</h1>
         <h2>If you want to manage your gists, <a @click="helpTokenModalActive = true">get a personal access token</a> on
@@ -50,7 +50,7 @@
   <div v-if="notesFiltered.length === 0 && searchField !== '' && !isLoading" class="columns notes">
     <div class="column is-12 no-note">
       <h1>Oh :(</h1>
-      <h2>Sorry, no {{gistsSelected ? 'gist' : 'note'}} found for your search</h2>
+      <h2>Sorry, no {{selected === 'gist' ? 'gist' : 'note'}} found for your search</h2>
     </div>
   </div>
 

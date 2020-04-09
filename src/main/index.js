@@ -45,13 +45,6 @@ function createWindow() {
         },
         { type: 'separator' },
         {
-          label: 'Toggle dev tools',
-          accelerator: 'CmdOrCtrl+Shift+I',
-          click: () => {
-            mainWindow.toggleDevTools();
-          },
-        },
-        {
           label: 'Quit',
           accelerator: 'Command+Q',
           click: () => {

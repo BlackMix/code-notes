@@ -1,11 +1,22 @@
+import { ToastProgrammatic as Toast } from 'buefy';
 import db from '@/datastore-notes';
 import mysql from '@/mysql';
 import converter from '@/converter';
-import Octokit from '@octokit/rest';
+import { Octokit } from '@octokit/rest';
 import path from 'path';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { remote } from 'electron';
 import packageJson from '../../../../package';
+
+const connect = (store) => {
+  const { mysqlHost, mysqlDB, mysqlUser, mysqlPassword } = store.rootState.Settings.database;
+  return mysql.createConnection({
+    host: mysqlHost,
+    user: mysqlUser,
+    password: mysqlPassword,
+    database: mysqlDB,
+  });
+};
 
 const getOctokit = ({ githubPersonalAccessToken, githubEnterpriseUrl }) => new Octokit({
   requestMedia: 'application/vnd.github.v3+json',
@@ -21,8 +32,7 @@ const getOctokit = ({ githubPersonalAccessToken, githubEnterpriseUrl }) => new O
 const state = {
   notes: [],
   languageSelected: 'all',
-  gistsSelected: false,
-  mysqlSelected: false,
+  selected: '',
   isLoading: false,
 };
 
@@ -36,7 +46,7 @@ const mutations = {
     state.notes.push(note);
   },
   DELETE_NOTE(state, note) {
-    if (state.gistsSelected) {
+    if (state.selected === 'gist') {
       state.notes = state.notes.filter(n => n.id !== note.id);
     } else {
       state.notes = state.notes.filter(n => n._id !== note._id);
@@ -46,11 +56,8 @@ const mutations = {
   SELECT_LANGUAGE(state, language) {
     state.languageSelected = language;
   },
-  SELECT_GISTS(state, gistsSelected) {
-    state.gistsSelected = gistsSelected;
-  },
-  SELECT_MYSQL(state, mysqlSelected) {
-    state.mysqlSelected = mysqlSelected;
+  SELECT(state, select) {
+    state.selected = select;
   },
   SELECT_LOADING(state, loading) {
     state.isLoading = loading;
@@ -59,10 +66,17 @@ const mutations = {
 
 const actions = {
   loadNotes(store) {
-    store.commit('SELECT_LOADING', true);
     store.commit('LOAD_NOTES', []);
-    if (store.state.gistsSelected) {
-      if (store.rootState.Settings.settings.githubPersonalAccessToken) {
+    store.commit('SELECT_LOADING', true);
+    switch (store.getters.selected) {
+      default: db.find({}, (err, notes) => {
+        if (!err) {
+          store.commit('LOAD_NOTES', notes);
+          actions.writeNotesToFS(notes);
+          store.commit('SELECT_LOADING', false);
+        }
+      }); break;
+      case 'gist': if (store.rootState.Settings.settings.githubPersonalAccessToken) {
         const octokit = getOctokit(store.rootState.Settings.settings);
 
         octokit.gists.list().then((res) => {
@@ -83,80 +97,59 @@ const actions = {
             store.commit('SELECT_LOADING', false);
           });
         });
-      } else {
-        store.commit('LOAD_NOTES', []);
-      }
-    } else {
-      if (store.state.mysqlSelected) {
-        const { mysqlHost, mysqlDB, mysqlUser, mysqlPassword } = store.rootState.Settings.database;
-        const q = mysql.createConnection({
-          host: mysqlHost,
-          user: mysqlUser,
-          password: mysqlPassword,
-          database: mysqlDB,
-        });
-        q.query('SELECT id,note FROM `notes`', (err, rows) => {
-          if (err) {
-            q.end(() => {});
-            store.commit('SELECT_LOADING', false);
-            return;
-          }
-
-          const results = [];
-
-          rows.forEach((v) => {
-            results.push(Object.assign({}, { id: v.id }, JSON.parse(v.note)));
+      } break;
+      case 'mysql': connect(store).query('SELECT id,note FROM `notes`', (err, rows) => {
+        if (err) {
+          connect(store).end(() => {});
+          store.commit('SELECT_LOADING', false);
+          Toast.open({
+            duration: 5000,
+            message: `Error on connect: ${err.code}`,
+            position: 'is-bottom-right',
+            type: 'is-danger',
           });
-
-          store.commit('LOAD_NOTES', results);
+          return;
+        }
+        const results = [];
+        rows.forEach((v) => {
+          results.push(Object.assign({}, { id: v.id }, JSON.parse(v.note)));
         });
-        q.end(() => {});
-        store.commit('SELECT_LOADING', false);
-        return;
-      }
-
-      db.find({}, (err, notes) => {
-        if (!err) {
-          store.commit('LOAD_NOTES', notes);
-          actions.writeNotesToFS(notes);
+        if (rows) {
+          store.commit('LOAD_NOTES', results);
+          store.commit('SELECT_LOADING', false);
+          connect(store).end(() => {});
+        } else {
+          store.commit('LOAD_NOTES', []);
           store.commit('SELECT_LOADING', false);
         }
-      });
+        connect(store).end(() => {});
+      }); break;
     }
   },
   addNote(store, note) {
     store.commit('SELECT_LOADING', true);
-    const octokit = getOctokit(store.rootState.Settings.settings);
-
-    if (store.state.gistsSelected) {
+    if (store.state.selected === 'gist') {
+      const octokit = getOctokit(store.rootState.Settings.settings);
       octokit.gists.create(note).then(() => {
         store.dispatch('loadNotes');
       });
-    } else {
-      if (store.state.mysqlSelected) {
-        const { mysqlHost, mysqlDB, mysqlUser, mysqlPassword } = store.rootState.Settings.database;
-        const q = mysql.createConnection({
-          host: mysqlHost,
-          user: mysqlUser,
-          password: mysqlPassword,
-          database: mysqlDB,
-        });
+    }
+    if (store.state.selected === 'mysql') {
+      connect(store).query('INSERT INTO notes SET note=?', JSON.stringify(note), (err) => {
+        if (err) {
+          connect(store).end();
+          store.commit('SELECT_LOADING', false);
+          return;
+        }
 
-        q.query('INSERT INTO notes SET note=?', JSON.stringify(note), (err) => {
-          if (err) {
-            q.end();
-            store.commit('SELECT_LOADING', false);
-            return;
-          }
-
-          store.dispatch('loadNotes');
-        });
-        q.end();
-        store.commit('ADD_NOTE', note);
-        store.commit('SELECT_LOADING', false);
-        return;
-      }
-
+        store.dispatch('loadNotes');
+      });
+      connect(store).end();
+      store.commit('ADD_NOTE', note);
+      store.commit('SELECT_LOADING', false);
+      return;
+    }
+    if (store.state.selected === 'local' || !store.state.selected) {
       db.insert(note, (err, note) => {
         if (!err) {
           store.commit('ADD_NOTE', note);
@@ -172,7 +165,7 @@ const actions = {
   },
   updateNote(store, note) {
     store.commit('SELECT_LOADING', true);
-    if (store.state.gistsSelected) {
+    if (store.state.selected === 'gist') {
       const octokit = getOctokit(store.rootState.Settings.settings);
 
       octokit.gists
@@ -183,25 +176,17 @@ const actions = {
         })
         .then(() => store.dispatch('loadNotes'));
     } else {
-      if (store.state.mysqlSelected) {
-        const { mysqlHost, mysqlDB, mysqlUser, mysqlPassword } = store.rootState.Settings.database;
-        const q = mysql.createConnection({
-          host: mysqlHost,
-          user: mysqlUser,
-          password: mysqlPassword,
-          database: mysqlDB,
-        });
-
-        q.query('UPDATE notes SET note = ? WHERE id = ?', [JSON.stringify(note), note.id], (err) => {
+      if (store.state.selected === 'mysql') {
+        connect(store).query('UPDATE notes SET note = ? WHERE id = ?', [JSON.stringify(note), note.id], (err) => {
           if (err) {
-            q.end();
+            connect(store).end();
             store.commit('SELECT_LOADING', false);
             return;
           }
 
           store.dispatch('loadNotes');
         });
-        q.end();
+        connect(store).end();
         store.commit('SELECT_LOADING', false);
         return;
       }
@@ -219,24 +204,16 @@ const actions = {
 
     const octokit = getOctokit(store.rootState.Settings.settings);
 
-    if (store.state.gistsSelected) {
+    if (store.state.selected === 'gist') {
       octokit.gists.delete({ gist_id: note.id }).then(() => {
         store.commit('DELETE_NOTE', note);
         store.commit('SELECT_LOADING', false);
       });
     } else {
-      if (store.state.mysqlSelected) {
-        const { mysqlHost, mysqlDB, mysqlUser, mysqlPassword } = store.rootState.Settings.database;
-        const q = mysql.createConnection({
-          host: mysqlHost,
-          user: mysqlUser,
-          password: mysqlPassword,
-          database: mysqlDB,
-        });
-
-        q.query('DELETE FROM notes WHERE id = ?', note.id, (err) => {
+      if (store.state.selected === 'mysql') {
+        connect(store).query('DELETE FROM notes WHERE id = ?', note.id, (err) => {
           if (err) {
-            q.end();
+            connect(store).end();
             store.commit('SELECT_LOADING', false);
             return;
           }
@@ -244,7 +221,7 @@ const actions = {
           store.commit('DELETE_NOTE', note);
           store.dispatch('loadNotes');
         });
-        q.end();
+        connect(store).end();
         store.commit('SELECT_LOADING', false);
         return;
       }
@@ -298,15 +275,8 @@ const actions = {
   selectLanguage(store, language) {
     store.commit('SELECT_LANGUAGE', language);
   },
-  selectGists(store, gists) {
-    store.commit('SELECT_GISTS', gists);
-    // prevent doubble loader
-    if (!this.mysqlSelected) store.dispatch('loadNotes');
-  },
-  selectMysql(store, mysql) {
-    store.commit('SELECT_MYSQL', mysql);
-    // prevent doubble loader
-    if (mysql) store.dispatch('loadNotes');
+  select(store, select) {
+    store.commit('SELECT', select);
   },
 };
 
@@ -342,9 +312,8 @@ const getters = {
     return total;
   },
   languageSelected: state => state.languageSelected,
-  gistsSelected: state => state.gistsSelected,
+  selected: state => state.selected,
   isLoading: state => state.isLoading,
-  mysqlSelected: state => state.mysqlSelected,
 };
 
 export default {

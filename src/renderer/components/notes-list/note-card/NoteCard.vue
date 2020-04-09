@@ -24,7 +24,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['notes', 'gistsSelected', 'githubToken']),
+    ...mapGetters(['notes', 'selected', 'githubToken']),
     displayNoteName() {
       return this.note.name.split('-')[0];
     },
@@ -43,9 +43,9 @@ export default {
     },
     deleteNoteModal() {
       this.$dialog.confirm({
-        title: this.gistsSelected ? 'Delete gist' : 'Delete note',
+        title: this.selected === 'gist' ? 'Delete gist' : 'Delete note',
         message: `Are you sure you want to delete this ${
-          this.gistsSelected ? 'gist' : 'note'
+          this.selected === 'gist' ? 'gist' : 'note'
         } ?`,
         confirmText: 'Delete',
         type: 'is-danger',

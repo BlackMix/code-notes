@@ -1,12 +1,12 @@
 <form action="" class="modal-form">
   <div class="modal-card">
     <header class="modal-card-head">
-      <p class="modal-card-title">Update {{gistsSelected ? 'gist' : 'note'}}</p>
+      <p class="modal-card-title">Update {{selected === 'gist' ? 'gist' : 'note'}}</p>
       <h2 class="text-red" v-if="displayDupError">Oh sorry, you can't have duplicated name in your note files...</h2>
     </header>
 
     <section class="modal-card-body">
-      <b-field v-if="!gistsSelected" horizontal label="Name">
+      <b-field v-if="selected !== 'gist'" horizontal label="Name">
         <b-input
           type="text"
           ref="noteName"
@@ -26,7 +26,7 @@
         </b-input>
       </b-field>
 
-      <b-field v-if="!gistsSelected" horizontal label="Tags">
+      <b-field v-if="selected !== 'gist'" horizontal label="Tags">
         <b-taginput
           v-model="note.tags"
           maxtags="5">

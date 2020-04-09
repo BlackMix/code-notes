@@ -43,7 +43,7 @@ export default {
     };
   },
   mounted() {
-    if (this.gistsSelected) {
+    if (this.selected === 'gist') {
       this.$refs.noteDescription.focus();
     } else {
       this.$refs.noteName.focus();
@@ -101,7 +101,7 @@ export default {
       return dupFiles;
     },
     getNoteType() {
-      return (this.gistsSelected) ? 'gist' : 'note';
+      return (this.selected === 'gist') ? 'gist' : 'note';
     },
     stringToColour(str) {
       const colorHash = new ColorHash({ lightness: 0.5, saturation: 0.6 });
@@ -109,7 +109,7 @@ export default {
     },
   },
   computed: {
-    ...mapGetters(['gistsSelected', 'notes']),
+    ...mapGetters(['selected', 'notes']),
     isDisabled() {
       const isGistDisabled = () => (
         !/\S/.test(this.note.description) ||
@@ -122,7 +122,7 @@ export default {
         isGistDisabled() || !/\S/.test(this.note.name)
       );
 
-      return this.gistsSelected ? isGistDisabled() : isNoteDisabled();
+      return this.selected === 'gist' ? isGistDisabled() : isNoteDisabled();
     },
     sortedLanguagesByUse() {
       this.languages.forEach((language) => { language.frequency = 0; });

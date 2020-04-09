@@ -34,11 +34,10 @@ export default {
       'notes',
       'noteById',
       'languageSelected',
-      'gistsSelected',
+      'selected',
       'isLoading',
       'settings',
-      'database',
-      'mysqlSelected'
+      'database'
     ]),
     notesFiltered() {
       const notesFiltered = this.notes.filter(item =>

@@ -6,24 +6,24 @@
     <ul class="menu-list">
       <li>
         <a
-          :class="{ 'is-active': !gistsSelected && gistsSelected !== null }"
-          @click="selectGistsSidebar(false)"
+          :class="{ 'is-active': ['', 'local'].includes(selected) }"
+          @click="selectSidebar('local')"
           >Local
           <b-icon icon="laptop" class="is-pulled-right"></b-icon>
         </a>
       </li>
       <li>
         <a
-          :class="{ 'is-active': gistsSelected }"
-          @click="selectGistsSidebar(true)"
+          :class="{ 'is-active': selected === 'gist' }"
+          @click="selectSidebar('gist')"
           >Gists
           <b-icon icon="github" class="is-pulled-right"></b-icon>
         </a>
       </li>
       <li>
         <a
-          :class="{ 'is-active': mysqlSelected }"
-          @click="selectMysqlSidebar(true)"
+          :class="{ 'is-active': selected === 'mysql' }"
+          @click="selectSidebar('mysql')"
           >Mysql
           <b-icon icon="database" class="is-pulled-right"></b-icon>
         </a>
@@ -59,17 +59,14 @@ import { mapGetters, mapActions } from 'vuex';
 export default {
   name: 'cn-sidebar',
   methods: {
-    ...mapActions(['selectLanguage', 'selectGists', 'selectMysql']),
+    ...mapActions(['selectLanguage', 'select', 'selectMysql']),
     selectLanguageSidebar(language) {
       this.selectLanguage(language);
     },
-    selectGistsSidebar(gistsSelected) {
-      this.selectMysql(false);
-      this.selectGists(gistsSelected);
-    },
-    selectMysqlSidebar(selectMysql) {
-      this.selectGists(null);
-      this.selectMysql(selectMysql);
+    selectSidebar(type) {
+      this.select(type);
+      this.$store.dispatch('loadNotes');
+      this.$store.commit('SELECT_LOADING', true);
     },
   },
   computed: {
@@ -78,9 +75,8 @@ export default {
       'notes',
       'languageSelected',
       'totalFiles',
-      'gistsSelected',
-      'isLoading',
-      'mysqlSelected'
+      'selected',
+      'isLoading'
     ]),
   },
 };

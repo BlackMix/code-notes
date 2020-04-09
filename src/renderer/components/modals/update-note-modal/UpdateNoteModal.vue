@@ -29,7 +29,7 @@ export default {
     };
   },
   mounted() {
-    if (this.gistsSelected) {
+    if (this.selected === 'gist') {
       this.$refs.noteDescription.focus();
     } else {
       this.$refs.noteName.focus();
@@ -51,7 +51,7 @@ export default {
     ...mapActions(['updateNote']),
     updateNoteModal() {
       if (!this.containsDupFiles()) {
-        if (this.gistsSelected) {
+        if (this.selected === 'gist') {
           this.files.forEach(file => {
             if (file.added) {
               this.gistFiles.push(file);
@@ -104,7 +104,7 @@ export default {
       });
     },
     deleteFile(file) {
-      if (this.gistsSelected) {
+      if (this.selected === 'gist') {
         this.gistFiles.forEach((f, index) => {
           if (f.id === file.id) {
             this.gistFiles[index].deleted = true;
@@ -130,11 +130,11 @@ export default {
       return dupFiles;
     },
     getNoteType() {
-      return (this.gistsSelected) ? 'gist' : 'note';
+      return (this.selected === 'gist') ? 'gist' : 'note';
     },
   },
   computed: {
-    ...mapGetters(['gistsSelected']),
+    ...mapGetters(['selected']),
     isDisabled() {
       const isGistDisabled = () => (
         !/\S/.test(this.noteUpdated.description) ||
@@ -147,7 +147,7 @@ export default {
         isGistDisabled() || !/\S/.test(this.noteUpdated.name)
       );
 
-      return this.gistsSelected ? isGistDisabled() : isNoteDisabled();
+      return this.selected === 'gist' ? isGistDisabled() : isNoteDisabled();
     },
   },
 };
